@@ -8,7 +8,7 @@
 // We can use two coordinate systems. NATIVE and VIRTUAL.
 // VIRTUAL has coords from 0.0f to APP_VIRTUAL_[WIDTH/HEIGHT].
 // NATIVE has coords from -1.0f to 1.0f with 0.0f,0.0f as the center of the window.
-#define APP_USE_VIRTUAL_RES		true					// Set true to use virtual coords.					
+#define APP_USE_VIRTUAL_RES		false					// Set true to use virtual coords.					
 #define APP_VIRTUAL_WIDTH		(1024)					// This will be the effective x resolution regardless of actual screen/window res.
 #define APP_VIRTUAL_HEIGHT		(768)					// This will be the effective y resolution regardless of actual screen/window res.
 
@@ -18,7 +18,7 @@
 #define APP_WINDOW_TITLE		("Game")
 
 #define APP_ENABLE_DEBUG_INFO_BUTTON		(App::BTN_DPAD_UP)
-#define APP_QUIT_KEY						(App::KEY_Q)
+#define APP_QUIT_KEY						(App::KEY_ESC)
 
 // Pad emulation. (Uses keyboard if no pad is present) Maps the following keys to the pad inputs.
 // Note analog inputs are either 0 or 1 when emulated. 
