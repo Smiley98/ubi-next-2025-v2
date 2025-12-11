@@ -18,7 +18,10 @@ struct Rectangle
 	int y_max;
 };
 
-void DrawTriangle(Vector4 v0, Vector4 v1, Vector4 v2, Vector3 c0, Vector3 c1, Vector3 c2, bool wireframe = false);
+inline void DrawTriangle(Vector4 v0, Vector4 v1, Vector4 v2, Vector3 c0, Vector3 c1, Vector3 c2, bool wireframe)
+{
+	App::DrawTriangle(v0.x, v0.y, v0.z, v0.w, v1.x, v1.y, v1.z, v1.w, v2.x, v2.y, v2.z, v2.w, c0.x, c0.y, c0.z, c1.x, c1.y, c1.z, c2.x, c2.y, c2.z, wireframe);
+}
 
 void DrawMesh(const Mesh& mesh, const UniformData& data, FragmentShader shader, bool wireframe)
 {
@@ -41,32 +44,28 @@ void DrawMesh(const Mesh& mesh, const UniformData& data, FragmentShader shader, 
 
 	for (const Face& face : faces)
 	{
-		Vector4 v0 = face.clip[0];
-		Vector4 v1 = face.clip[1];
-		Vector4 v2 = face.clip[2];
-
-		Vector3 ndc0 = face.ndc[0];
-		Vector3 ndc1 = face.ndc[1];
-		Vector3 ndc2 = face.ndc[2];
-
 		// Backface culling (API enables depth-test but not face-culling)...
-		Vector3 face_normal = Vector3Normalize(Vector3CrossProduct(Vector3Normalize(ndc1 - ndc0), Vector3Normalize(ndc2 - ndc0)));
-		if (Vector3DotProduct(face_normal, Vector3UnitZ) < 0.0f) continue;
+		{
+			Vector3 face_normal = Vector3Normalize(Vector3CrossProduct(Vector3Normalize(face.ndc[1] - face.ndc[0]), Vector3Normalize(face.ndc[2] - face.ndc[0])));
+			if (Vector3DotProduct(face_normal, Vector3UnitZ) < 0.0f) continue;
+		}
 
-		Vector3 p = (face.position[0] + face.position[1] + face.position[2]) / 3.0f;
-		Vector3 n = face.normal;
-
-		// TODO -- Modify "fragment shaders" to input 3 vertex attributes and output 3 vertex colours!
+		// (Not worth it to interpolate 3 colors from 3 shaders just to get the same colour that you can get from a single shader)
 		Fragment frag;
-		frag.p = p;
-		frag.n = n;
-
+		frag.p = (face.position[0] + face.position[1] + face.position[2]) / 3.0f;
+		frag.n = face.normal;
 		Vector3 color = shader(data, frag);
-		DrawTriangle(v0, v1, v2, color, color, color, wireframe);
-	}
-}
+		::DrawTriangle(face.clip[0], face.clip[1], face.clip[2], color, color, color, wireframe);
 
-void DrawTriangle(Vector4 v0, Vector4 v1, Vector4 v2, Vector3 c0, Vector3 c1, Vector3 c2, bool wireframe)
-{
-	App::DrawTriangle(v0.x, v0.y, v0.z, v0.w, v1.x, v1.y, v1.z, v1.w, v2.x, v2.y, v2.z, v2.w, c0.x, c0.y, c0.z, c1.x, c1.y, c1.z, c2.x, c2.y, c2.z, wireframe);
+		// New API produces a near-identical result but with 3x the fragment shader evaluations...
+		//Vector3 colors[3];
+		//for (int i = 0; i < 3; i++)
+		//{
+		//	Fragment frag;
+		//	frag.p = face.position[i];
+		//	frag.n = face.normal;
+		//	colors[i] = shader(data, frag);
+		//}
+		//::DrawTriangle(face.clip[0], face.clip[1], face.clip[2], colors[0], colors[1], colors[2], wireframe);
+	}
 }
