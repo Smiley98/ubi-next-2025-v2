@@ -7,40 +7,43 @@ void MeshImport(Mesh* mesh, const char* filename)
 	in.open(filename, std::ios::binary);
 
 	size_t position_count = 0;
+	size_t normal_count = 0;
 	size_t index_count = 0;
 	in.read((char*)&position_count, sizeof(position_count));
+	in.read((char*)&normal_count, sizeof(normal_count));
 	in.read((char*)&index_count, sizeof(index_count));
 
 	std::vector<Vector3> positions;
+	std::vector<Vector3> normals;
 	std::vector<uint16_t> indices;
 	positions.resize(position_count);
+	normals.resize(normal_count);
 	indices.resize(index_count);
 
 	in.read((char*)positions.data(), sizeof(Vector3) * position_count);
+	in.read((char*)normals.data(), sizeof(Vector3) * normal_count);
 	in.read((char*)indices.data(), sizeof(Vector3) * index_count);
 	in.close();
 
-	MeshTriangulate(mesh, positions, indices);
+	MeshTriangulate(mesh, positions, normals, indices);
 }
 
-void MeshTriangulate(Mesh* mesh, const std::vector<Vector3>& positions, const std::vector<uint16_t>& indices)
+void MeshTriangulate(Mesh* mesh, const std::vector<Vector3>& positions, const std::vector<Vector3>& normals, const std::vector<uint16_t>& indices)
 {
 	mesh->face_count = indices.size() / 3;
 	mesh->positions.resize(indices.size());
-	mesh->normals.resize(mesh->face_count);
+	mesh->normals.resize(indices.size());
 
 	for (size_t f = 0; f < mesh->face_count; f++)
 	{
 		size_t v = f * 3;
-		Vector3 v0 = positions[indices[v + 0]];
-		Vector3 v1 = positions[indices[v + 1]];
-		Vector3 v2 = positions[indices[v + 2]];
-		Vector3 n = Vector3Normalize(Vector3CrossProduct(Vector3Normalize(v1 - v0), Vector3Normalize(v2 - v0)));
+		mesh->positions[v + 0] = positions[indices[v + 0]];
+		mesh->positions[v + 1] = positions[indices[v + 1]];
+		mesh->positions[v + 2] = positions[indices[v + 2]];
 
-		mesh->positions[v + 0] = v0;
-		mesh->positions[v + 1] = v1;
-		mesh->positions[v + 2] = v2;
-		mesh->normals[f] = n;
+		mesh->normals[v + 0] = normals[indices[v + 0]];
+		mesh->normals[v + 1] = normals[indices[v + 1]];
+		mesh->normals[v + 2] = normals[indices[v + 2]];
 	}
 }
 

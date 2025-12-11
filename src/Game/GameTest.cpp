@@ -3,6 +3,7 @@
 #endif
 
 #include <cassert>
+#include <algorithm>
 #include "Renderer.h"
 #include "../ContestAPI/app.h"
 
@@ -57,7 +58,7 @@ void Render()
 	data.object_color = Vector3Normalize(Vector3UnitX);
 
 	data.light_color = Vector3Ones;
-	data.light_position = { sinf(tt) * 00.0f, 0.0f, 10.0f };
+	data.light_position = { sinf(tt) * 10.0f, 0.0f, 10.0f };
 	data.ambient_strength = 0.1f;
 	data.diffuse_strength = 0.5f;
 	data.specular_strength = 0.75f;
@@ -99,30 +100,29 @@ void InitMeshes()
 		Mesh& m = meshes[MESH_TRIANGLE];
 		m.face_count = 1;
 
-		m.positions.resize(m.face_count * 3);
+		m.positions.resize(3);
 		m.positions[0] = { 0.5f, -0.5f, 0.0f };
 		m.positions[1] = { 0.0f,  0.5f, 0.0f };
 		m.positions[2] = { -0.5f, -0.5f, 0.0f };
 
-		m.normals.resize(m.face_count);
-		m.normals[0] = Vector3UnitZ;
+		m.normals.resize(3, Vector3UnitZ);
 	}
 
 	{
-		std::vector<Vector3> positions;
-		positions.resize(4);
+		std::vector<Vector3> positions(4);
 		positions[0] = { 0.5f, -0.5f, 0.0f };	// bottom-right
 		positions[1] = { 0.5f,  0.5f, 0.0f };	// top-right
 		positions[2] = { -0.5f,  0.5f, 0.0f };	// top-left
 		positions[3] = { -0.5f, -0.5f, 0.0f };	// bottom-left
 
+		std::vector<Vector3> normals(4, Vector3UnitZ);
 		std::vector<uint16_t> indices
 		{
 			0, 1, 3,
 			1, 2, 3
 		};
-
-		MeshTriangulate(&meshes[MESH_PLANE], positions, indices);
+		
+		MeshTriangulate(&meshes[MESH_PLANE], positions, normals, indices);
 	}
 
 	MeshImport(&meshes[MESH_SPHERE], "./data/TestData/sphere.vbo_nxt");
